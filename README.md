@@ -79,6 +79,19 @@ functions:
       operator: sink
 ```
 
+```mermaid
+---
+Sequential with filtering Example
+---
+flowchart LR
+    source@{ shape: lean-r, label: "Source" }
+    sink@{ shape: lean-l, label: "Sink" }
+    fn_1@{ shape: rounded, label: "Function 1" }
+    fn_2@{ shape: rounded, label: "Function 2" }
+    
+    source --> fn_1 --"`key **num_messages** >= 5`"--> fn_2 --> sink
+```
+
 #### Branching
 
 ```yaml
@@ -119,10 +132,12 @@ Branching Example
 ---
 flowchart LR
     
-    fn_1[Function 1]
-    fn_2[Function 2]
-    fn_3[Function 3]
-    fn_4[Function 4]
+    source@{ shape: lean-r, label: "Source" }
+    sink@{ shape: lean-l, label: "Sink" }
+    fn_1@{ shape: rounded, label: "Function 1" }
+    fn_2@{ shape: rounded, label: "Function 2" }
+    fn_3@{ shape: rounded, label: "Function 3" }
+    fn_4@{ shape: rounded, label: "Function 4" }
     
     source --> fn_1
     fn_1 --"`key **name** = 3`"--> fn_2 --> sink
