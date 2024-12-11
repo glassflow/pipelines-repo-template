@@ -49,66 +49,9 @@ functions:
     name: # default: <id>
     requirements: # default: steps/<step_id>/requirements.py
     handler: # default: steps/<step_id>/handler.py
-    inputs:
-      - type: # default: sequential
-        config:
-    
-    outputs:
-      - type: # default: sequential
-        config:
+    output:
+      operator: # default: sink
 
-```
-
-### Type of Inputs
-
-#### Sequential
-
-This is the default input type. If not provided in the YAML, we will assume the
-functions input is the previous function from the list of functions in the YAML 
-(or the source if it's the first function).
-
-```yaml
-functions:
-  - id: step_1
-    name: Step 1
-  - id: step_2
-    name: Step 2
-    input:
-      - type: sequential
-        config:
-          id: step_1
-```
-
-#### Merge
-
-This input type will merge events from multiple functions.
-
-```yaml
-functions:
-  - id: step_1
-    name: Step 1
-  - id: step_2
-    name: Step 2
-  - id: step_3
-    name: Step 3
-    inputs:
-      - type: merge
-        config:
-          steps:
-            - step_1
-            - step_2
-```
-
-Step 3 will receive the combined output of steps 1 and 2:
-
-```json
-{
-  "req_id": 123,
-  "steps": {
-    "step_1": {},
-    "step_2": {}
-  }
-}
 ```
 
 ### Outputs
@@ -121,43 +64,70 @@ functions output is the next function from the list of functions in the YAML
 
 ```yaml
 functions:
-  - id: step_1
-    name: Step 1
-  - id: step_2
-    name: Step 2
-    outputs:
-      - type: sequential
-        config:
-          id: step_1
+  - id: fn_1
+    name: Function 1
+    output:
+      operator: sequential
+      filter-conditions:  # Optional
+        - key: num_messages
+          value: 5
+          operator: ">="
+      function_id: fn_2
+  - id: fn_2
+    name: Function 2
+    output:
+      operator: sink
 ```
 
 #### Branching
 
 ```yaml
 functions:
-  - id: step_1
-    name: Step 1
-    outputs:
-      - type: branch
-        config:
-          branches:
-            - id: step_2
-              key: name
-              value: 3
-              operation: eq
-            - id: step_3
-              key: name
-              value: 3
-              operation: gt
-            - id: step_4
-              key: name
-              operation: is_null
-  - id: step_2
-    name: Step 2
-  - id: step_3
-    name: Step 3
-  - id: step_4
-    name: Step 4
+  - id: fn_1
+    name: Function 1
+    output:
+      operator: branch
+      branching-conditions:
+        - function_id: fn_2
+          key: name
+          value: 3
+          operation: eq
+        - function_id: fn_3
+          key: name
+          value: 3
+          operation: gt
+        - function_id: fn_4
+          key: name
+          operation: is_null
+  - id: fn_2
+    name: Function 2
+    output:
+      operator: sink
+  - id: fn_3
+    name: Function 3
+    output:
+      operator: sink
+  - id: fn_4
+    name: Function 4
+    output:
+      operator: sink
+```
+
+```mermaid
+---
+Branching Example
+---
+flowchart LR
+    
+    fn_1[Function 1]
+    fn_2[Function 2]
+    fn_3[Function 3]
+    fn_4[Function 4]
+    
+    source --> fn_1
+    fn_1 --"`key **name** = 3`"--> fn_2 --> sink
+    fn_1 --"`key **name** > 3`"--> fn_3 --> sink
+    fn_1 --"`key **name** is null`"--> fn_4 --> sink
 ```
 
 ### Multiple inputs and outputs
