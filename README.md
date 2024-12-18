@@ -31,99 +31,255 @@ tests/
 name:
 pipeline_id: # if not defined, pipeline will be created by CI/CD
 space_id:
-
-source:
-  kind:
-  config:
-
-sink:
-  kind:
-  config:
-
-environment:
-  - name:
-    value:
     
-functions:
-  - id:
-    name: # default: <id>
+blocks:
+  - id: my_source
+    name: My Source
+    type: source
+    kind: 
+    config:
+    next_block_id: my_transform
+  - id: my_transform
+    name: My transform # default: <id>
+    type: transform
     requirements: # default: steps/<step_id>/requirements.py
     handler: # default: steps/<step_id>/handler.py
-    output:
-      operator: # default: sink
-
+    next_block_id: sink
+  - id: my_sink
+    name: My sink
+    type: sink
+    kind:
+    config:
 ```
 
-### Outputs
+### Restrictions
 
-#### Sequential
+- A pipeline can only have one source and one sink (for now)
+- The graph of functions can not have any cycle
+- Blocks without output are allowed but will trigger a warning
+- Blocks without input are not possible
 
-This is the default output type. If not provided in the YAML, we will assume the
-functions output is the next function from the list of functions in the YAML 
-(or the sink if it's the last function).
+### Blocks
+
+A block represents the smallest work unit at GlassFlow. They consist of an input queue, some python code and output channels.
+
+#### Transformation
+
+This type of block consists of one input and one output and a python code:
 
 ```yaml
-functions:
-  - id: fn_1
-    name: Function 1
-    output:
-      operator: sequential
-      filter-conditions:  # Optional
-        - key: num_messages
-          value: 5
-          operator: ">="
-      function_id: fn_2
-  - id: fn_2
-    name: Function 2
-    output:
-      operator: sink
+  - id:
+    name:
+    type: transform
+    next_block_id:
+    env_vars:
+      - name:
+        value:
+    requirements:
+        path:   # path to file with requirements.txt file
+        value:  # requirements.txt file value
+    files:
+      - name:
+        value:  # Code
+        path:   # path to file with code
+```
+
+#### Conditional
+
+This block type, sends the events to different blocks depending on a list of conditions.
+
+```yaml
+  - id:
+    name:
+    type: conditional
+    branches:
+      - block_id:
+        filter:
+          - key:
+            operator:
+            value:
+            dtype:
+```
+#### Filter
+
+This block filters out events between blocks:
+
+```yaml
+  - id:
+    name:
+    type: filter
+    next_block_id:
+    filter:
+      - key:
+        operator:
+        value:
+        dtype:
+```
+
+#### Source
+
+Source block
+
+```yaml
+  - id:
+    name:
+    type: source
+    next_blok_id:
+    kind:
+    config:
+```
+
+#### Sink
+
+Sink block
+
+```yaml
+  - id:
+    name:
+    type: sink
+    kind:
+    config:
+```
+
+### Examples
+
+#### Sequential pipeline with filtering block
+
+```yaml
+name:
+pipeline_id: # if not defined, pipeline will be created by CI/CD
+space_id:
+    
+blocks:
+  - id: my_postgres
+    name: My Postgres Source
+    type: source
+    kind: postgres
+    config:
+      host:
+      db_user:
+      db_pass:
+      db_name:
+    next_block_id: my_transform_1
+    
+  - id: my_transform_1
+    name: My transform 1 # default: <id>
+    type: transform
+    requirements: # default: steps/<step_id>/requirements.py
+    handler: # default: steps/<step_id>/handler.py
+    next_block_id: my_filter
+    
+  - id: my_filter
+    name: My filter # default: <id>
+    type: filter
+    filter:
+      - key: num_messages
+        operator: ge
+        value: 5
+        dtype: int
+    next_block_id: my_transform_2
+    
+  - id: my_transform_2
+    name: My transform 2 # default: <id>
+    type: transform
+    requirements: # default: steps/<step_id>/requirements.py
+    handler: # default: steps/<step_id>/handler.py
+    next_block_id: my_sink
+    
+  - id: my_sink
+    name: My sink
+    type: sink
+    kind: webhook
+    config:
+      method: POST
+      url: www.mywebhookurl.com
 ```
 
 ```mermaid
 ---
-Sequential with filtering Example
+Sequential pipeline with filtering block
 ---
 flowchart LR
     source@{ shape: lean-r, label: "Source" }
     sink@{ shape: lean-l, label: "Sink" }
-    fn_1@{ shape: rounded, label: "Function 1" }
-    fn_2@{ shape: rounded, label: "Function 2" }
+    fn_1@{ shape: rounded, label: "My transform 1" }
+    filter@{ shape: hex, label: "Filter:\nkey **num_messages** >= 5" }
+    fn_2@{ shape: rounded, label: "My transform 2" }
     
-    source --> fn_1 --"`key **num_messages** >= 5`"--> fn_2 --> sink
+    source --> fn_1 --> filter --> fn_2 --> sink
 ```
 
-#### Branching
+#### Complex pipeline
 
 ```yaml
-functions:
-  - id: fn_1
-    name: Function 1
-    output:
-      operator: branch
-      branching-conditions:
-        - function_id: fn_2
-          key: name
-          value: 3
-          operation: eq
-        - function_id: fn_3
-          key: name
-          value: 3
-          operation: gt
-        - function_id: fn_4
-          key: name
-          operation: is_null
-  - id: fn_2
-    name: Function 2
-    output:
-      operator: sink
-  - id: fn_3
-    name: Function 3
-    output:
-      operator: sink
-  - id: fn_4
-    name: Function 4
-    output:
-      operator: sink
+name:
+pipeline_id: # if not defined, pipeline will be created by CI/CD
+space_id:
+    
+blocks:
+  - id: my_postgres
+    name: My Postgres Source
+    type: source
+    kind: postgres
+    config:
+      host:
+      db_user:
+      db_pass:
+      db_name:
+    next_block_id: my_transform_1
+    
+  - id: my_transform_1
+    name: My transform 1 # default: <id>
+    type: transform
+    requirements: # default: steps/<step_id>/requirements.py
+    handler: # default: steps/<step_id>/handler.py
+    next_block_id: my_filter
+    
+  - id: my_condition
+    name: Condition # default: <id>
+    type: conditional
+    branches:
+      - block_id: my_transform_2
+        filter:
+          - key: num_messages
+            operator: ge
+            value: 5
+            dtype: int
+      - block_id: my_transform_3
+        filter:
+          - key: num_messages
+            operator: lt
+            value: 5
+            dtype: int
+      - block_id: my_transform_4
+        filter:
+          - key: num_messages
+            operator: is_null
+            dtype: int
+    
+  - id: my_transform_2
+    name: My transform 2 # default: <id>
+    type: transform
+    requirements: # default: steps/<step_id>/requirements.py
+    handler: # default: steps/<step_id>/handler.py
+    next_block_id: my_sink
+  - id: my_transform_3
+    name: My transform 3 # default: <id>
+    type: transform
+    requirements: # default: steps/<step_id>/requirements.py
+    handler: # default: steps/<step_id>/handler.py
+    next_block_id: my_sink
+  - id: my_transform_4
+    name: My transform 4 # default: <id>
+    type: transform
+    requirements: # default: steps/<step_id>/requirements.py
+    handler: # default: steps/<step_id>/handler.py
+    next_block_id: my_sink
+  - id: my_sink
+    name: My sink
+    type: sink
+    kind:
+    config:
 ```
 
 ```mermaid
@@ -134,20 +290,17 @@ flowchart LR
     
     source@{ shape: lean-r, label: "Source" }
     sink@{ shape: lean-l, label: "Sink" }
-    fn_1@{ shape: rounded, label: "Function 1" }
-    fn_2@{ shape: rounded, label: "Function 2" }
-    fn_3@{ shape: rounded, label: "Function 3" }
-    fn_4@{ shape: rounded, label: "Function 4" }
+    fn_1@{ shape: rounded, label: "Transformation 1" }
+    cond@{ shape: diamond, label: "Conditional" }
+    fn_2@{ shape: rounded, label: "Transformation 2" }
+    fn_3@{ shape: rounded, label: "Transformation 3" }
+    fn_4@{ shape: rounded, label: "Transformation 4" }
     
-    source --> fn_1
-    fn_1 --"`key **name** = 3`"--> fn_2 --> sink
-    fn_1 --"`key **name** > 3`"--> fn_3 --> sink
-    fn_1 --"`key **name** is null`"--> fn_4 --> sink
+    source --> fn_1 --> cond
+    cond --"`key **num_messages** >= 5`"--> fn_2 --> sink
+    cond --"`key **num_messages** < 5`"--> fn_3 --> sink
+    cond --"`key **num_messages** is null`"--> fn_4 --> sink
 ```
-
-### Multiple inputs and outputs
-
-Each function can consume events from multiple inputs and publish them to multiple outputs (replicate events and send them to different outputs).
 
 ## GlassFlow YAML specification
 
