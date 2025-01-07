@@ -4,7 +4,7 @@
 
 ```
 glassflow.yaml                 -- Glassflow configuration file
-
+secrets.secret                 -- Encrypted file with secrets (CI/CD will set the secrets on the GF secrets manager)
 pipelines/
    pipeline-x/
       pipeline.yaml            -- Pipeline configuration
@@ -31,25 +31,28 @@ tests/
 name:
 pipeline_id: # if not defined, pipeline will be created by CI/CD
 space_id:
-    
+
+common_modules: # Path to python modules to load into all functions
 blocks:
   - id: my_source
     name: My Source
     type: source
     kind: 
-    config:
-    next_block_id: my_transform
-  - id: my_transform
-    name: My transform # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
+    config_secret_ref:
+    next_block_id: my_transformer
+    
+  - id: my_transformer
+    name: My transformer # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
     next_block_id: sink
+    
   - id: my_sink
     name: My sink
     type: sink
     kind:
-    config:
+    config_secret_ref:
 ```
 
 ### Restrictions
@@ -63,18 +66,19 @@ blocks:
 
 A block represents the smallest work unit at GlassFlow. They consist of an input queue, some python code and output channels.
 
-#### Transformation
+#### Transformer
 
 This type of block consists of one input and one output and a python code:
 
 ```yaml
   - id:
     name:
-    type: transform
+    type: transformer
     next_block_id:
     env_vars:
       - name:
         value:
+        value_secret_ref:  # Key to secret
     requirements:
         path:   # path to file with requirements.txt file
         value:  # requirements.txt file value
@@ -84,17 +88,17 @@ This type of block consists of one input and one output and a python code:
         path:   # path to file with code
 ```
 
-#### Conditional
+#### Branch
 
 This block type, sends the events to different blocks depending on a list of conditions.
 
 ```yaml
   - id:
     name:
-    type: conditional
+    type: branch
     branches:
       - block_id:
-        filter:
+        conditions:
           - key:
             operator:
             value:
@@ -109,7 +113,7 @@ This block filters out events between blocks:
     name:
     type: filter
     next_block_id:
-    filter:
+    conditions:
       - key:
         operator:
         value:
@@ -127,6 +131,7 @@ Source block
     next_blok_id:
     kind:
     config:
+    config_secret_ref:  # Key of secret to load the config from 
 ```
 
 #### Sink
@@ -139,6 +144,7 @@ Sink block
     type: sink
     kind:
     config:
+    config_secret_ref:  # Key of secret to load the config from
 ```
 
 ### Examples
@@ -155,44 +161,38 @@ blocks:
     name: My Postgres Source
     type: source
     kind: postgres
-    config:
-      host:
-      db_user:
-      db_pass:
-      db_name:
-    next_block_id: my_transform_1
+    config_secret_ref:
+    next_block_id: my_transformer_1
     
-  - id: my_transform_1
-    name: My transform 1 # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
+  - id: my_transformer_1
+    name: My transformer 1 # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
     next_block_id: my_filter
     
   - id: my_filter
     name: My filter # default: <id>
     type: filter
-    filter:
+    conditions:
       - key: num_messages
         operator: ge
         value: 5
         dtype: int
-    next_block_id: my_transform_2
+    next_block_id: my_transformer_2
     
-  - id: my_transform_2
-    name: My transform 2 # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
+  - id: my_transformer_2
+    name: My transformer 2 # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
     next_block_id: my_sink
     
   - id: my_sink
     name: My sink
     type: sink
     kind: webhook
-    config:
-      method: POST
-      url: www.mywebhookurl.com
+    config_secret_ref:
 ```
 
 ```mermaid
@@ -202,9 +202,9 @@ Sequential pipeline with filtering block
 flowchart LR
     source@{ shape: lean-r, label: "Source" }
     sink@{ shape: lean-l, label: "Sink" }
-    fn_1@{ shape: rounded, label: "My transform 1" }
+    fn_1@{ shape: rounded, label: "My transformer 1" }
     filter@{ shape: hex, label: "Filter:\nkey **num_messages** >= 5" }
-    fn_2@{ shape: rounded, label: "My transform 2" }
+    fn_2@{ shape: rounded, label: "My transformer 2" }
     
     source --> fn_1 --> filter --> fn_2 --> sink
 ```
@@ -221,65 +221,64 @@ blocks:
     name: My Postgres Source
     type: source
     kind: postgres
-    config:
-      host:
-      db_user:
-      db_pass:
-      db_name:
-    next_block_id: my_transform_1
+    config_secret_ref:
+    next_block_id: my_transformer_1
     
-  - id: my_transform_1
-    name: My transform 1 # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
-    next_block_id: my_filter
+  - id: my_transformer_1
+    name: My transformer 1 # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
+    next_block_id: my_branch
     
-  - id: my_condition
-    name: Condition # default: <id>
-    type: conditional
+  - id: my_branch
+    name: Branch # default: <id>
+    type: branch
     branches:
-      - block_id: my_transform_2
-        filter:
+      - block_id: my_transformer_2
+        conditions:
           - key: num_messages
             operator: ge
             value: 5
             dtype: int
-      - block_id: my_transform_3
-        filter:
+      - block_id: my_transformer_3
+        conditions:
           - key: num_messages
             operator: lt
             value: 5
             dtype: int
-      - block_id: my_transform_4
-        filter:
+      - block_id: my_transformer_4
+        conditions:
           - key: num_messages
             operator: is_null
             dtype: int
     
-  - id: my_transform_2
-    name: My transform 2 # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
+  - id: my_transformer_2
+    name: My transformer 2 # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
     next_block_id: my_sink
-  - id: my_transform_3
-    name: My transform 3 # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
+    
+  - id: my_transformer_3
+    name: My transformer 3 # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
     next_block_id: my_sink
-  - id: my_transform_4
-    name: My transform 4 # default: <id>
-    type: transform
-    requirements: # default: steps/<step_id>/requirements.py
-    handler: # default: steps/<step_id>/handler.py
+    
+  - id: my_transformer_4
+    name: My transformer 4 # default: <id>
+    type: transformer
+    requirements: # default: blocks/<block_id>/requirements.py
+    handler: # default: blocks/<block_id>/handler.py
     next_block_id: my_sink
+
   - id: my_sink
     name: My sink
     type: sink
     kind:
-    config:
+    config_secret_ref:
 ```
 
 ```mermaid
@@ -309,3 +308,26 @@ Probably not yet needed as we don't have many global settings.
 ```yaml
 organization_id:
 ```
+
+
+## Concepts
+
+Space:
+    Group of pipelines
+
+Pipeline: 
+    Principal object in GlassFlow. 
+    It encapsulates data coming in and going out (one or multiple sources / sinks) that transforms data.
+
+
+Pipeline Block:
+    Smallest unit of work in a pipeline. It consists of an input queue, one or more output channels and python code
+
+    There are different type of blocks:
+        - Source
+        - Sink
+        - Transformation block
+        - Conditional block
+
+Graph Representation:
+    Dependency graph between pipeline blocks
