@@ -1,0 +1,29 @@
+name: Simple Pipeline
+space_id: 6f2560cc-3679-4836-ab5d-b41e6ea2d8f3
+
+functions:
+  - id: source
+    name: Source
+    type: source
+    next_block_id: main
+
+  - id: main
+    name: Main
+    type: transformer
+    requirements:
+      path: requirements.txt
+    files:
+      - name: main
+        path: handler.py
+    env_vars:
+      - name: TEST_VARIABLE
+        value: test value
+      - name: TEST_SECRET
+        value_secret_ref: test_secret
+    next_block_id: sink
+
+  - id: sink
+    name: Sink
+    type: sink
+    kind: webhook
+    config_secret_ref: test_connection_secret

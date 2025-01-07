@@ -4,21 +4,20 @@
 
 ```
 glassflow.yaml                 -- Glassflow configuration file
-secrets.secret                 -- Encrypted file with secrets (CI/CD will set the secrets on the GF secrets manager)
+secrets.yaml                 -- Encrypted file with secrets (CI/CD will set the secrets on the GF secrets manager)
 pipelines/
-   pipeline-x/
+   pipeline_x/
       pipeline.yaml            -- Pipeline configuration
       common/                  -- Directory with common python code shared by all the steps
-      functions/               -- Directory with pipeline functions (folder name == function_id) 
-         function-x/
+      blocks/                  -- Directory with pipeline blocks (folder name == block_id) 
+         block_x/
             handler.py
             requirements.txt
 
 tests/
-   pipelines/
-      pipeline_x/
-         test_step_x.py        -- Unit test for step x
-         test_pipeline_x.py    -- integration test for pipeline x (use SDK to test already created pipeline)
+    pipeline_x/
+        test_block_x.py        -- Unit test for step x
+        test_pipeline_x.py    -- integration test for pipeline x (use SDK to test already created pipeline)
 
 .github/
    workflows/
@@ -309,25 +308,9 @@ Probably not yet needed as we don't have many global settings.
 organization_id:
 ```
 
+## Secrets
 
-## Concepts
+Secrets will be stored in our glassflow secret store, the SDK will set the secrets from the `secrets.yaml` file 
+which will be encrypted when pushed to github.
 
-Space:
-    Group of pipelines
-
-Pipeline: 
-    Principal object in GlassFlow. 
-    It encapsulates data coming in and going out (one or multiple sources / sinks) that transforms data.
-
-
-Pipeline Block:
-    Smallest unit of work in a pipeline. It consists of an input queue, one or more output channels and python code
-
-    There are different type of blocks:
-        - Source
-        - Sink
-        - Transformation block
-        - Conditional block
-
-Graph Representation:
-    Dependency graph between pipeline blocks
+Secrets are referenced in the YAML files by their keys.
