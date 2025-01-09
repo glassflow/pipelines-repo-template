@@ -1,0 +1,28 @@
+name: Pipeline with shared code 1
+
+# Space: cicd-test
+space_id: dbc98f33-805e-44ff-a5bd-8ee68052f43d
+
+blocks:
+  - id: source
+    name: Source
+    type: source
+    next_block_id: main
+
+  - id: main
+    name: Main
+    type: transformer
+    requirements:
+      path: files/requirements.txt
+    transformation:
+      path: files/handler.py
+    env_vars:
+      - name: TEST_VARIABLE
+        value: test value
+      - name: TEST_SECRET
+        value_secret_ref: test_secret
+    next_block_id: sink
+
+  - id: sink
+    name: Sink
+    type: sink
