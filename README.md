@@ -77,14 +77,17 @@ This type of block consists of one input and one output and a python code:
     env_vars:
       - name:
         value:
-        value_secret_ref:  # Key to secret
+        value_secret_ref: # Key to secret
     requirements:
-        path:   # path to file with requirements.txt file
-        value:  # requirements.txt file value
+      path:               # path to file with requirements.txt file relative to pipeline yaml file
+      value:              # requirements.txt file value
+    transformation:
+      path:               # path to python handler file relative to pipeline yaml file 
+      value:
     files:
       - name:
-        value:  # Code
-        path:   # path to file with code
+        value:            # Code
+        path:             # path to file with code
 ```
 
 #### Branch
@@ -166,8 +169,10 @@ blocks:
   - id: my_transformer_1
     name: My transformer 1 # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
+    requirements:
+      path:
+    handler:
+      path:
     next_block_id: my_filter
     
   - id: my_filter
@@ -183,8 +188,10 @@ blocks:
   - id: my_transformer_2
     name: My transformer 2 # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
+    requirements:
+      path:
+    handler:
+      path:
     next_block_id: my_sink
     
   - id: my_sink
@@ -226,8 +233,10 @@ blocks:
   - id: my_transformer_1
     name: My transformer 1 # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
+    requirements:
+      path:
+    handler:
+      path:
     next_block_id: my_branch
     
   - id: my_branch
@@ -255,22 +264,28 @@ blocks:
   - id: my_transformer_2
     name: My transformer 2 # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
+    requirements:
+      path:
+    handler:
+      path:
     next_block_id: my_sink
     
   - id: my_transformer_3
     name: My transformer 3 # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
+    requirements:
+      path:
+    handler:
+      path:
     next_block_id: my_sink
     
   - id: my_transformer_4
     name: My transformer 4 # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
+    requirements:
+      path:
+    handler:
+      path:
     next_block_id: my_sink
 
   - id: my_sink

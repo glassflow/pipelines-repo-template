@@ -1,7 +1,9 @@
 name: Simple Pipeline
-space_id: 6f2560cc-3679-4836-ab5d-b41e6ea2d8f3
 
-functions:
+# Space: cicd-test
+space_id: dbc98f33-805e-44ff-a5bd-8ee68052f43d
+
+blocks:
   - id: source
     name: Source
     type: source
@@ -12,9 +14,8 @@ functions:
     type: transformer
     requirements:
       path: requirements.txt
-    files:
-      - name: main
-        path: handler.py
+    transformation:
+      path: handler.py
     env_vars:
       - name: TEST_VARIABLE
         value: test value
@@ -25,5 +26,3 @@ functions:
   - id: sink
     name: Sink
     type: sink
-    kind: webhook
-    config_secret_ref: test_connection_secret
