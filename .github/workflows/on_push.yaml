@@ -9,7 +9,7 @@ jobs:
     name: On push to main, push also pipeline changes to glassflow
     steps:
       - uses: actions/checkout@v4
-      - uses: glassflow/glassflow-action@v1
+      - uses: glassflow/glassflow-action@8e2a8a9a7d805a7d826989252aebaea642130ea8
         with:
           pipelines-dir: pipelines/
           glassflow-personal-access-token: ${{ secrets.GlassflowPAT }}
