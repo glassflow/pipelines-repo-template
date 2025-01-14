@@ -1,0 +1,15 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  glassflow-push:
+    runs-on: ubuntu-latest
+    name: On push to main, push also pipeline changes to glassflow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: glassflow/glassflow-action@v1
+        with:
+          pipelines-dir: pipelines/
+          glassflow-personal-access-token: ${{ secrets.GlassflowPAT }}
