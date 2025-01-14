@@ -1,3 +1,4 @@
+pipeline_id: cb406331-3916-4eba-974c-c94f176773ad
 name: Pipeline with shared code 2
 
 # Space: cicd-test
@@ -7,7 +8,6 @@ blocks:
   - id: source
     name: Source
     type: source
-    next_block_id: main
 
   - id: main
     name: Main
@@ -20,9 +20,12 @@ blocks:
       - name: TEST_VARIABLE
         value: test value
       - name: TEST_SECRET
-        value_secret_ref: test_secret
-    next_block_id: sink
+        value: test_secret
+    inputs:
+      - source
 
   - id: sink
     name: Sink
     type: sink
+    inputs:
+      main

@@ -9,15 +9,15 @@ pipelines/
    pipeline_x/
       pipeline.yaml            -- Pipeline configuration
       common/                  -- Directory with common python code shared by all the steps
-      blocks/                  -- Directory with pipeline blocks (folder name == block_id) 
-         block_x/
+      components/                  -- Directory with pipeline components (folder name == component_id) 
+         component_x/
             handler.py
             requirements.txt
 
 tests/
     pipeline_x/
-        test_block_x.py        -- Unit test for step x
-        test_pipeline_x.py    -- integration test for pipeline x (use SDK to test already created pipeline)
+        test_component_x.py     -- Unit test for component x
+        test_pipeline_x.py      -- integration test for pipeline x (use SDK to test already created pipeline)
 
 .github/
    workflows/
@@ -31,49 +31,54 @@ name:
 pipeline_id: # if not defined, pipeline will be created by CI/CD
 space_id:
 
-common_modules: # Path to python modules to load into all functions
-blocks:
+common_modules: # Path to python modules to load into all functions [Not in v1]
+components:
   - id: my_source
     name: My Source
     type: source
     kind: 
     config_secret_ref:
-    next_block_id: my_transformer
     
   - id: my_transformer
     name: My transformer # default: <id>
     type: transformer
-    requirements: # default: blocks/<block_id>/requirements.py
-    handler: # default: blocks/<block_id>/handler.py
-    next_block_id: sink
+    requirements:
+      path:
+    handler:
+      path:
+    inputs:
+      - my_source
     
   - id: my_sink
     name: My sink
     type: sink
     kind:
     config_secret_ref:
+    inputs:
+      - my_transformer
 ```
 
 ### Restrictions
 
 - A pipeline can only have one source and one sink (for now)
 - The graph of functions can not have any cycle
-- Blocks without output are allowed but will trigger a warning
-- Blocks without input are not possible
+- Components without output are allowed but will trigger a warning
+- Components without input are not possible
 
-### Blocks
+### Pipeline Components
 
-A block represents the smallest work unit at GlassFlow. They consist of an input queue, some python code and output channels.
+A component represents the smallest work unit at GlassFlow. They consist of an input queue, some python code and output channels.
 
 #### Transformer
 
-This type of block consists of one input and one output and a python code:
+This type of component consist of one input and one output and a python code:
 
 ```yaml
   - id:
     name:
     type: transformer
-    next_block_id:
+    inputs:
+      - <component_id>    # Component ID to pull events from
     env_vars:
       - name:
         value:
@@ -84,7 +89,7 @@ This type of block consists of one input and one output and a python code:
     transformation:
       path:               # path to python handler file relative to pipeline yaml file 
       value:
-    files:
+    files:                # [Not in v1]
       - name:
         value:            # Code
         path:             # path to file with code
@@ -98,8 +103,10 @@ This block type, sends the events to different blocks depending on a list of con
   - id:
     name:
     type: branch
+    inputs:
+      - <component_id>    # Component ID to pull events from
     branches:
-      - block_id:
+      - branch_id:
         conditions:
           - key:
             operator:
@@ -114,7 +121,8 @@ This block filters out events between blocks:
   - id:
     name:
     type: filter
-    next_block_id:
+    inputs:
+      - <component_id>    # Component ID to pull events from
     conditions:
       - key:
         operator:
@@ -130,7 +138,6 @@ Source block
   - id:
     name:
     type: source
-    next_blok_id:
     kind:
     config:
     config_secret_ref:  # Key of secret to load the config from 
@@ -147,6 +154,8 @@ Sink block
     kind:
     config:
     config_secret_ref:  # Key of secret to load the config from
+    inputs:
+      - <component_id>    # Component ID to pull events from
 ```
 
 ### Examples
@@ -164,7 +173,6 @@ blocks:
     type: source
     kind: postgres
     config_secret_ref:
-    next_block_id: my_transformer_1
     
   - id: my_transformer_1
     name: My transformer 1 # default: <id>
@@ -173,7 +181,8 @@ blocks:
       path:
     handler:
       path:
-    next_block_id: my_filter
+    inputs:
+      - my_postgres
     
   - id: my_filter
     name: My filter # default: <id>
@@ -183,7 +192,8 @@ blocks:
         operator: ge
         value: 5
         dtype: int
-    next_block_id: my_transformer_2
+    inputs:
+      - my_transformer_1
     
   - id: my_transformer_2
     name: My transformer 2 # default: <id>
@@ -192,13 +202,16 @@ blocks:
       path:
     handler:
       path:
-    next_block_id: my_sink
+    inputs:
+      - my_filter
     
   - id: my_sink
     name: My sink
     type: sink
     kind: webhook
     config_secret_ref:
+    inputs:
+      - my_transformer_2
 ```
 
 ```mermaid
@@ -222,13 +235,12 @@ name:
 pipeline_id: # if not defined, pipeline will be created by CI/CD
 space_id:
     
-blocks:
+components:
   - id: my_postgres
     name: My Postgres Source
     type: source
     kind: postgres
     config_secret_ref:
-    next_block_id: my_transformer_1
     
   - id: my_transformer_1
     name: My transformer 1 # default: <id>
@@ -237,25 +249,28 @@ blocks:
       path:
     handler:
       path:
-    next_block_id: my_branch
+    inputs:
+      - my_postgres
     
   - id: my_branch
     name: Branch # default: <id>
     type: branch
+    inputs:
+      - my_transformer_1
     branches:
-      - block_id: my_transformer_2
+      - block_id: branch_1
         conditions:
           - key: num_messages
             operator: ge
             value: 5
             dtype: int
-      - block_id: my_transformer_3
+      - block_id: branch_2
         conditions:
           - key: num_messages
             operator: lt
             value: 5
             dtype: int
-      - block_id: my_transformer_4
+      - block_id: branch_3
         conditions:
           - key: num_messages
             operator: is_null
@@ -268,7 +283,8 @@ blocks:
       path:
     handler:
       path:
-    next_block_id: my_sink
+    inputs:
+      - branch_1
     
   - id: my_transformer_3
     name: My transformer 3 # default: <id>
@@ -277,7 +293,8 @@ blocks:
       path:
     handler:
       path:
-    next_block_id: my_sink
+    inputs:
+      - branch_2
     
   - id: my_transformer_4
     name: My transformer 4 # default: <id>
@@ -286,13 +303,18 @@ blocks:
       path:
     handler:
       path:
-    next_block_id: my_sink
+    inputs:
+      - branch_3
 
   - id: my_sink
     name: My sink
     type: sink
     kind:
     config_secret_ref:
+    inputs:
+      - my_transformer_2
+      - my_transformer_3 
+      - my_transformer_4 
 ```
 
 ```mermaid
