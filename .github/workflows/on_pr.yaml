@@ -1,0 +1,26 @@
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  glassflow-changes:
+    runs-on: ubuntu-latest
+    name: Send a message to your PR with the changes to pipelines expected in the PR
+    steps:
+      - uses: actions/checkout@v4
+      - uses: glassflow/pipelines-push-action@v1
+        id: pipeline-changes
+        with:
+          pipelines-dir: pipelines/
+          glassflow-personal-access-token: ${{ secrets.GlassflowPAT }}
+          dry-run: true
+
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+              Expected changes on your GlassFlow pipelines:
+              \t‣ Create ${{ setps.pipeline-changes.outputs.to_create_count }} pipelines.
+              \t‣ Update ${{ setps.pipeline-changes.outputs.to_update_count }} pipelines.
+              \t‣ Delete ${{ setps.pipeline-changes.outputs.to_delete_count }} pipelines.
