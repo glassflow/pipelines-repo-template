@@ -19,6 +19,6 @@ jobs:
         with:
           message: |
               Expected changes on your GlassFlow pipelines:
-              \t‣ Create ${{ setps.pipeline-changes.outputs.to_create_count }} pipelines.
-              \t‣ Update ${{ setps.pipeline-changes.outputs.to_update_count }} pipelines.
-              \t‣ Delete ${{ setps.pipeline-changes.outputs.to_delete_count }} pipelines.
+              \t‣ Create ${{ steps.pipeline-changes.outputs.to_create_count }} pipelines.
+              \t‣ Update ${{ steps.pipeline-changes.outputs.to_update_count }} pipelines.
+              \t‣ Delete ${{ steps.pipeline-changes.outputs.to_delete_count }} pipelines.
