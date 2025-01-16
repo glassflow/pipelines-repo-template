@@ -11,5 +11,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: glassflow/pipelines-push-action@v1
         with:
-          pipelines-dir: pipelines/
+          pipelines-dir: pipelines
           glassflow-personal-access-token: ${{ secrets.GlassflowPAT }}
