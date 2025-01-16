@@ -10,7 +10,7 @@ jobs:
       - uses: glassflow/pipelines-push-action@v1
         id: pipeline-changes
         with:
-          pipelines-dir: pipelines/
+          pipelines-dir: pipelines
           glassflow-personal-access-token: ${{ secrets.GlassflowPAT }}
           dry-run: true
 
