@@ -5,6 +5,7 @@ import os
 
 
 # Function to encrypt email address
+# :Comment to test:
 def handler(data, log):
     key = os.getenv("AES_KEY").encode('utf-8')
 
