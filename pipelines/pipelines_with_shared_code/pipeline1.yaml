@@ -9,23 +9,21 @@ components:
     name: Source
     type: source
 
-  - id: main
-    name: Main
+  - id: encrypt_email
+    name: Encrypt Email
     type: transformer
+    requirements:
+      path: encrypt_email/requirements.txt
+    transformation:
+      path: encrypt_email/handler.py
+    env_vars:
+      - name: AES_KEY
+        value: 88c5ce4f9ea5343b49683bc3c35894a4
     inputs:
       - source
-    requirements:
-      path: files/requirements.txt
-    transformation:
-      path: files/handler.py
-    env_vars:
-      - name: TEST_VARIABLE
-        value: test value
-      - name: TEST_SECRET
-        value: test_secret
 
   - id: sink
     name: Sink
     type: sink
     inputs:
-      - main
+      - encrypt_email

@@ -2,25 +2,6 @@
 
 The purpose of this repo is to showcase how to write and maintain GlassFlow pipelines in production.
 
-## Repo Structure
-
-```
-pipelines/
-   pipeline_1/
-      pipeline.yaml                 -- Pipeline configuration
-      transformations/              -- Directory with pipeline trasformation 
-         transformation_1/
-            handler.py
-            requirements.txt
-
-tests/
-    pipeline_1/
-        test_transformation_1.py    -- Unit test for trasformation 1
-        test_pipeline_1.py          -- integration test for pipeline 1 (use SDK to test already created pipeline)
-
-.github/
-   workflows/
-```
 
 ## Pipeline YAML specification 
 
@@ -62,8 +43,6 @@ components:
 
 ### Pipeline Components
 
-A component represents the smallest work unit at GlassFlow. They consist of an input queue, some python code and output channels.
-
 #### Transformer
 
 This type of component consist of one input and one output and a python code:
@@ -83,10 +62,6 @@ This type of component consist of one input and one output and a python code:
     transformation:
       path:               # path to python handler file relative to pipeline yaml file 
       value:
-    files:                # [Not in v1]
-      - name:
-        value:            # Code
-        path:             # path to file with code
 ```
 
 #### Source
