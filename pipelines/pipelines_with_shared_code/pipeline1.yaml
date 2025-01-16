@@ -1,5 +1,5 @@
 pipeline_id: 44e95505-f29e-4762-88f1-4807d0bc181c
-name: Pipeline with shared code 2
+name: Pipeline with shared code 1
 
 # Space: cicd-test
 space_id: dbc98f33-805e-44ff-a5bd-8ee68052f43d
