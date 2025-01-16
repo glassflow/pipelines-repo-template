@@ -9,18 +9,13 @@ blocks:
     name: Source
     type: source
 
-  - id: main
-    name: Main
+  - id: add_new_fields
+    name: Add new fields
     type: transformer
     requirements:
-      path: requirements.txt
+      path: add_new_fields/requirements.txt
     transformation:
-      path: handler.py
-    env_vars:
-      - name: TEST_VARIABLE
-        value: test value
-      - name: TEST_SECRET
-        value: test_secret
+      path: add_new_fields/handler.py
     inputs:
       - source
 
@@ -28,4 +23,4 @@ blocks:
     name: Sink
     type: sink
     inputs:
-      - main
+      - add_new_fields
