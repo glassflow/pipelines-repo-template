@@ -12,7 +12,7 @@ components:
     name: Add new fields
     type: transformer
     transformation:
-      path: add_new_fields/handler.py
+      path: handler.py
     inputs:
       - source
 
