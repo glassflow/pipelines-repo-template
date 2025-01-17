@@ -1,13 +1,13 @@
 # GlassFlow Pipelines Repository Template
 
-The purpose of this repo is to showcase how to write and maintain GlassFlow pipelines in production.
+The purpose of this repo is to showcase how to write and maintain GlassFlow data pipelines in production.
 
 
 ## Pipeline YAML specification 
 
 > [!NOTE]  
-> A pipeline consists on three components: source, transformer and sink
-> For now, we can only define one of each and connect them sequentially (source -> transformer -> sink)
+> A pipeline consists on three components: source, transformer and sink. All three components are required to define a pipeline.
+> For now, we can only define one of each type and connect them sequentially (source -> transformer -> sink)
 
 ```yaml
 # Pipeline Name
@@ -55,9 +55,15 @@ components:
       - my_transformer
 ```
 
-### Pipeline Components
+## Pipeline Components
 
-#### Transformer
+```mermaid
+flowchart LR;
+    A[source] --> B[transformer] --> C[sink];
+```
+
+
+### Transformer
 
 The transformer component transforms passing events with a python transformation.
 
@@ -96,10 +102,10 @@ The transformer component transforms passing events with a python transformation
       value: 
 ```
 
-#### Source
+### Source
 
-Source connector components ingest data from a source and queue events for the rest of the pipeline to consume. 
-Here is the list of supported sources https://www.glassflow.dev/integrations#source.
+Source connector components ingest data from a source and queue events for the rest of the pipeline to consume. Source connectors are managed by GlassFlow.
+
 
 ```yaml
   - id: source-id         # required
@@ -113,10 +119,20 @@ Here is the list of supported sources https://www.glassflow.dev/integrations#sou
     config:               # required
 ```
 
-#### Sink
+
+#### List of supported sources:
+
+|  Source Name   | type          | Documentation                                                  |
+|:--------------:|---------------|----------------------------------------------------------------| 
+| Google Pub/Sub | google_pubsub | [Link](https://www.glassflow.dev/integrations/google-pub-sub)  |
+|   Amazon SQS   | amazon_sqs    | [Link](https://www.glassflow.dev/integrations/amazon-sqs)      |
+|  Postgres CDC  | postgres      | [Link](https://www.glassflow.dev/integrations/postgres-source) |
+
+
+
+### Sink
 
 Sink connector component push events from the pipeline into a sink. 
-Here is the list of supported sinks https://www.glassflow.dev/integrations#sink.
 
 ```yaml
   - id:                 # required
@@ -134,3 +150,15 @@ Here is the list of supported sinks https://www.glassflow.dev/integrations#sink.
     inputs:             # required
       - <component_id>
 ```
+
+#### List of supported sinks:
+
+| Source Name | type               | Documentation                                               |
+|:-----------:|--------------------|-------------------------------------------------------------| 
+| Clickhouse  | clickhouse         | [Link](https://www.glassflow.dev/integrations/clickhouse)   |
+|  Snowflake  | snowflake_cdc_json | [Link](https://www.glassflow.dev/integrations/snowflake)    |
+|   Webhook   | webhook            | [Link](https://www.glassflow.dev/integrations/webhook-sink) |
+|   AWS S3    | amazon_s3          | [Link](https://www.glassflow.dev/integrations/amazon-s3)    |
+|  Pinecone   | pinecone_json      | -                                                           |
+|   MongoDB   | mongodb_json       | -                                                           |
+
