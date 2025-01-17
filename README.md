@@ -18,7 +18,11 @@ name: My First Pipeline  # required
 pipeline_id:
 
 # Space ID where to create the pipeline
-space_id:  # required
+# If pipeline_id is provided, space_id must also be filled with the space_id from the pipeline
+space_id: 
+
+# If space_name is provided and space_id not, then the CI/CD will create a new space
+space_name:  
 
 components:
   - id: my_source
@@ -122,7 +126,7 @@ Source connector components ingest data from a source and queue events for the r
 
 #### List of supported sources:
 
-|  Source Name   | type          | Documentation                                                  |
+|  Source Name   | kind          | Documentation                                                  |
 |:--------------:|---------------|----------------------------------------------------------------| 
 | Google Pub/Sub | google_pubsub | [Link](https://www.glassflow.dev/integrations/google-pub-sub)  |
 |   Amazon SQS   | amazon_sqs    | [Link](https://www.glassflow.dev/integrations/amazon-sqs)      |
@@ -153,7 +157,7 @@ Sink connector component push events from the pipeline into a sink.
 
 #### List of supported sinks:
 
-| Source Name | type               | Documentation                                               |
+| Source Name | kind               | Documentation                                               |
 |:-----------:|--------------------|-------------------------------------------------------------| 
 | Clickhouse  | clickhouse         | [Link](https://www.glassflow.dev/integrations/clickhouse)   |
 |  Snowflake  | snowflake_cdc_json | [Link](https://www.glassflow.dev/integrations/snowflake)    |
