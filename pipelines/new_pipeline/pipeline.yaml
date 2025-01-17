@@ -1,0 +1,23 @@
+name: New Pipeline
+
+# Space: cicd-test
+space_id: dbc98f33-805e-44ff-a5bd-8ee68052f43d
+
+components:
+  - id: source
+    name: Source
+    type: source
+
+  - id: add_new_fields
+    name: Add new fields
+    type: transformer
+    transformation:
+      path: add_new_fields/handler.py
+    inputs:
+      - source
+
+  - id: sink
+    name: Sink
+    type: sink
+    inputs:
+      - add_new_fields
