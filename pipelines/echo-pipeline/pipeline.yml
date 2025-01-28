@@ -1,0 +1,23 @@
+name: Echo Pipeline
+space_name: Example Space
+
+components:
+  - id: source
+    name: Source
+    type: source
+
+  - id: echo
+    name: Echo
+    type: transformer
+    requirements:
+      path: echo/requirements.txt
+    transformation:
+      path: echo/handler.py
+    inputs:
+      - source
+
+  - id: sink
+    name: Sink
+    type: sink
+    inputs:
+      - echo
