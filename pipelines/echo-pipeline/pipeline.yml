@@ -12,7 +12,7 @@ components:
     requirements:
       path: requirements.txt
     transformation:
-      path: handler.py
+      path: transform.py
     inputs:
       - source
 
