@@ -10,9 +10,9 @@ components:
     name: Echo
     type: transformer
     requirements:
-      path: echo/requirements.txt
+      path: requirements.txt
     transformation:
-      path: echo/handler.py
+      path: handler.py
     inputs:
       - source
 
@@ -21,3 +21,5 @@ components:
     type: sink
     inputs:
       - echo
+space_id: 4df9b56c-1324-4cf6-a634-14d21d8a0282
+pipeline_id: 6b96a253-522b-4238-9718-35ec99e8c57e
