@@ -2,6 +2,13 @@
 
 The purpose of this repo is to showcase how to write and maintain GlassFlow data pipelines in production.
 
+## Configure Github Action
+
+We will use the Github Action [glassflow/pipelines-push-action](https://github.com/marketplace/actions/glassflow-pipelines-push-action) 
+to push changes in our pipelines to GlassFlow automatically.
+
+Make sure to add your GlassFlow Personal Access token to your repository secrets as described [here](https://github.com/marketplace/actions/glassflow-pipelines-push-action#configuration). 
+
 
 ## Pipeline YAML specification 
 
