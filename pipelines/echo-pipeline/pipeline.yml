@@ -10,9 +10,9 @@ components:
     name: Echo
     type: transformer
     requirements:
-      path: echo/requirements.txt
+      path: requirements.txt
     transformation:
-      path: echo/handler.py
+      path: handler.py
     inputs:
       - source
 
